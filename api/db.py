@@ -65,18 +65,50 @@ def device_exists(device_id):
 
 
 def get_latest_measurement(device_id):
-    # TODO M1:
-    # Implementera senaste mätvärdet för en sensor.
-    return None
-
+    query = """
+        SELECT id, device_id, temperature, humidity, battery, created_at
+        FROM measurements
+        WHERE device_id = %s
+        ORDER BY created_at DESC
+        LIMIT 1;
+    """
+    with get_connection() as conn:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute(query, (device_id,))
+            row = cur.fetchone()
+            return _json_ready(row)
 
 def get_measurements_for_device(device_id):
-    # TODO M1:
-    # Implementera historik för en sensor.
+    query = """
+        SELECT id, device_id, temperature, humidity, battery, created_at
+        FROM measurements
+        WHERE device_id = %s
+        ORDER BY created_at DESC
+        LIMIT 100;
+    """
+    with get_connection() as conn:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute(query, (device_id,))
+            return [_json_ready(row) for row in cur.fetchall()]
     return []
 
 
 def insert_measurement(data):
-    # TODO M1:
-    # Spara ett validerat mätvärde i PostgreSQL.
-    return None
+    query = """
+        INSERT INTO measurements (device_id, temperature, humidity, battery)
+        VALUES (%s, %s, %s, %s)
+        RETURNING id, device_id, temperature, humidity, battery, created_at;
+    """
+    with get_connection() as conn:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute(
+                query,
+                (
+                    data["deviceId"],
+                    data["temperature"],
+                    data.get("humidity"),
+                    data.get("battery"),
+                ),
+            )
+            row = cur.fetchone()
+            return _json_ready(row)
