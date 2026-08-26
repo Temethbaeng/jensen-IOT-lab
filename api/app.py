@@ -45,6 +45,12 @@ def measurements():
 
 @app.get("/devices/<device_id>/latest")
 def latest(device_id):
+    if not device_exists(device_id):
+        return jsonify({"error": "Unknown device"}), 404
+    row = get_latest_measurement(device_id)
+    if row is None:
+        return jsonify({"error": "No measurements available for this device"}), 404
+    return jsonify(row), 200
     # TODO M1:
     # Läs senaste mätningen från PostgreSQL med get_latest_measurement(...).
     # Returnera 404 om sensorn eller en mätning saknas.
