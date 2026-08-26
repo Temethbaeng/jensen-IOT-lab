@@ -80,20 +80,12 @@ def create_measurement():
     if errors:
         print(f"INVALID measurement from {data.get('deviceId', 'unknown')}: {errors}")
         return jsonify({"errors": errors}), 400
-
-    # TODO M1:
-    # Kontrollera med device_exists(...) att deviceId tillhör en känd sensor.
-    # Okänd sensor ska ge 400 med ett tydligt JSON-fel.
-    #
-    # Spara till PostgreSQL via insert_measurement(data).
-    #
     # TODO M2:
-    # Uppdatera latest-cache för sensorn.
-    #
-    # Under starter-fasen returneras 202 så att simulatorn kan köras
-    # även innan studenten implementerat persistensen.
     print(f"VALID measurement received: {data}")
-    return jsonify({"status": "accepted", "measurement": data}), 202
+    if not device_exists(data["deviceId"]):
+        return jsonify({"error": f"Unknown device: {data['deviceId']}"}), 400
+    row = insert_measurement(data)
+    return jsonify(row), 201
 
 
 @app.get("/statistics")
