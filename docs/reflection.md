@@ -8,9 +8,9 @@ Svara kort men motiverat på samtliga frågor. Knyt svaren till vad du implement
 4. Vad händer med lösningen om Redis försvinner? Om redis försvinner så fortsätter allt att fungera. Ingen data går förlorad för redis håller bara en kopia av något som redan finns i databasen, det enda som egentligen tar stryk är prestandan. Varje läsning måste gå till PostgreSQL tills cachen byggts upp igen.
 5. Vad händer med lösningen om PostgreSQL försvinner? Om PostgreSQL försvinner så försvinner all historik. Kvar finns endast det som redis har och det är en per sensor. Fråga 4 och 5 hänger ihop på det sättet. Redis är en kopia som kan återskapas medans PostgreSQL är orginalet som inte kan det.
 6. Varför används Docker Compose lokalt? Compose startar fyra tjänster med ett kommando istället för fyra manuella "docker run" med nätverk och miljövariablar. Konfigen ligger i versionshanterad kod så det är lätt att reproducera miljön = vem som helst som klonar repot får densamma uppsättning.
-7. Vad automatiserar din CI-pipeline?
-8. Vad observerade du när du tog bort en Kubernetes Pod?
-9. Varför kan flera repliker ge högre tillgänglighet?
-10. När hade Kubernetes varit overkill för en lösning?
+7. Vad automatiserar din CI-pipeline? Vid varje github push så startas en färsk Ubuntu-maskin som checkar koden, installerar python 3.12 och beroendena från requirements.txt och kör mina sex pytest-tester. Inget från min lokala miljö följer med vilket är poängen. Går något sönder så syns det direkt istället för när jag lämnar in det.
+8. Vad observerade du när du tog bort en Kubernetes Pod? Ersättaren skapades automatiskt. Min deployment har replicas: 3 som önskat läge. När antalet blev två så skapade kontrollern en ny utan att jag bad om det. Det var en helt ny pod med ett nytt namn.
+9. Varför kan flera repliker ge högre tillgänglighet? När jag raderade en Pod och trafiken fortsatte fungera bekräftade att tjänsten fortsätter även fast en pod dör. 
+10. När hade Kubernetes varit overkill för en lösning? Komplexiteten är i sig en risk. Ett Kubernetes-kluster är fler rörliga delar att förstå, felsöka och säkerhetsuppdatera. Det är ett värde bara om problemet det löser är större. Kubernetes börjar löna sig när du kör i produktion, med krav på tillgänglighet, flera noder och trafik som varierar över dygnet. Fram till dess är Compose rätt verktyg. PostgreSQL och Redis kör fortfarande i Compose. Bara API:t ligger i Kubernetes, och de tre Poddarna kan inte ens nå databasen. Det är ett bra exempel på att verktyget inte automatiskt passar hela systemet.
 
 Spara svaren i denna fil. Arkitekturdiagrammet lämnas separat enligt `docs/architecture.md`.
